@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -6,7 +8,8 @@ import connectDatabase from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import errorHandler from './utils/errorHandler.js';
 
-dotenv.config();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, '.env') });
 
 const app = express();
 

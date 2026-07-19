@@ -1,7 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { validateRegisterInput, validateLoginInput, validateProfileInput } from '../validators/authValidator.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (userId, email) => {
   return jwt.sign({ userId, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -24,6 +27,50 @@ const sanitizeUser = (user) => ({
   phone: user.phone,
   profileCompleted: user.profileCompleted,
 });
+
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Credential required' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const { sub: googleId, name: fullName, email, picture: avatar } = payload;
+
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      if (!user.googleId) user.googleId = googleId;
+      if (!user.avatar) user.avatar = avatar;
+      if (!user.fullName) user.fullName = fullName;
+      await user.save();
+    } else {
+      user = await User.create({
+        googleId,
+        email: email.toLowerCase(),
+        fullName: fullName || '',
+        avatar: avatar || '',
+      });
+    }
+
+    const token = generateToken(user._id, user.email);
+    setTokenCookie(res, token);
+
+    return res.json({
+      success: true,
+      message: 'Google sign-in successful',
+      data: { user: sanitizeUser(user) },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const register = async (req, res, next) => {
   try {

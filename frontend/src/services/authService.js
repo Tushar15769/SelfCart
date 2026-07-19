@@ -46,6 +46,18 @@ export async function getCurrentUser() {
   return data;
 }
 
+export async function googleLogin(credential) {
+  const res = await fetch(`${API_URL}/google`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential }),
+    credentials: 'include',
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+  return data;
+}
+
 export async function updateProfile(profileData) {
   const res = await fetch(`${API_URL}/profile`, {
     method: 'PUT',
