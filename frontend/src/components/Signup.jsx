@@ -65,19 +65,19 @@ export default function Signup() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Save registered credentials to localStorage for login verification
-      localStorage.setItem('selfcart_registered_user', JSON.stringify({
-        email: formData.email.trim(),
-        mobile: formData.mobile.trim(),
-        password: formData.password
-      }));
-      // Redirect to login page — user must verify credentials before proceeding
+      localStorage.setItem(
+        'selfcart_registered_user',
+        JSON.stringify({
+          email: formData.email.trim(),
+          mobile: formData.mobile.trim(),
+          password: formData.password,
+        })
+      );
       navigate('/');
     }
   };
 
   const handleGoogleSignup = () => {
-    // Simulated Google OAuth redirect/success — Google users go directly to profile setup
     navigate('/profile-setup');
   };
 

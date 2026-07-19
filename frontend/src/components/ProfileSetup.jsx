@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Auth.css';
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const { user, updateProfile } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -11,6 +13,17 @@ export default function ProfileSetup() {
   });
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }));
+    }
+  }, [user]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -41,13 +54,15 @@ export default function ProfileSetup() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Temporarily store the data in localStorage
-      localStorage.setItem('selfcart_user_profile', JSON.stringify(formData));
-      // Redirect to the home landing page
-      navigate('/home');
+      try {
+        await updateProfile({ fullName: formData.fullName.trim(), phone: formData.phone.trim() });
+        navigate('/home');
+      } catch (err) {
+        setErrors((prev) => ({ ...prev, auth: err.message }));
+      }
     }
   };
 
@@ -57,7 +72,6 @@ export default function ProfileSetup() {
       ...prev,
       [name]: value,
     }));
-    // Clear error for the field when typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }

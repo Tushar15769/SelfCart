@@ -20,7 +20,6 @@ export default function Login() {
     if (!val) {
       newErrors.emailOrMobile = 'Email or Mobile Number is required';
     } else {
-      // Check if it looks like an email or mobile number
       const isDigits = /^\d+$/.test(val);
       if (isDigits) {
         if (val.length !== 10) {
@@ -50,20 +49,15 @@ export default function Login() {
       const input = formData.emailOrMobile.trim();
       const pwd = formData.password;
 
-      // Check registered users from localStorage (if any)
       const registeredUserJson = localStorage.getItem('selfcart_registered_user');
       let isRegisteredUser = false;
       if (registeredUserJson) {
         const regUser = JSON.parse(registeredUserJson);
-        if (
-          (input === regUser.email || input === regUser.mobile) &&
-          pwd === regUser.password
-        ) {
+        if ((input === regUser.email || input === regUser.mobile) && pwd === regUser.password) {
           isRegisteredUser = true;
         }
       }
 
-      // Check default verified credentials
       const isDefaultUser =
         (input === 'shopper@selfcart.com' || input === '9876543210') &&
         pwd === 'password123';
@@ -80,7 +74,6 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // Simulated Google OAuth redirect/success
     navigate('/profile-setup');
   };
 

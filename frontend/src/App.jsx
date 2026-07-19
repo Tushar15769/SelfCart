@@ -5,6 +5,7 @@ import Signup from './components/Signup';
 import ForgotPassword from './components/ForgotPassword';
 import ProfileSetup from './components/ProfileSetup';
 import LandingPage from './components/LandingPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -13,8 +14,16 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/profile-setup" element={<ProfileSetup />} />
-        <Route path="/home" element={<LandingPage />} />
+        <Route path="/profile-setup" element={
+          <ProtectedRoute>
+            <ProfileSetup />
+          </ProtectedRoute>
+        } />
+        <Route path="/home" element={
+          <ProtectedRoute>
+            <LandingPage />
+          </ProtectedRoute>
+        } />
       </Routes>
     </Router>
   );
