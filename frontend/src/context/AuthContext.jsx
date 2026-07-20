@@ -40,8 +40,9 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
-  const googleLogin = useCallback(async (accessToken) => {
-    const res = await authService.googleLogin(accessToken);
+  const googleLogin = useCallback(async (credential) => {
+    console.log('[AuthContext.googleLogin] called, credential present:', !!credential);
+    const res = await authService.googleLogin(credential);
     const userData = res.data?.user ?? res.user;
     setUser(userData);
     return userData;

@@ -4,7 +4,11 @@ import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { validateRegisterInput, validateLoginInput, validateProfileInput } from '../validators/authValidator.js';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'postmessage'
+);
 
 const generateToken = (userId, email) => {
   return jwt.sign({ userId, email }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -15,7 +19,7 @@ const setTokenCookie = (res, token) => {
   res.cookie('token', token, {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     secure: isProduction,
   });
 };
@@ -30,7 +34,9 @@ const sanitizeUser = (user) => ({
 
 export const googleAuth = async (req, res, next) => {
   try {
+    console.log('[Google Auth] POST /api/auth/google called');
     const { credential } = req.body;
+    console.log('[Google Auth] req.body.credential present:', !!credential);
     if (!credential) {
       return res.status(400).json({ success: false, message: 'Credential required' });
     }
@@ -39,7 +45,9 @@ export const googleAuth = async (req, res, next) => {
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+    console.log('[Google Auth] verifyIdToken succeeded');
     const payload = ticket.getPayload();
+    console.log('[Google Auth] Decoded email:', payload?.email);
 
     const { sub: googleId, name: fullName, email, picture: avatar } = payload;
 
@@ -142,7 +150,12 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie('token');
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+  });
   return res.json({ success: true, message: 'Logged out' });
 };
 

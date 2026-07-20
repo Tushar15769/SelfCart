@@ -47,6 +47,7 @@ export async function getCurrentUser() {
 }
 
 export async function googleLogin(credential) {
+  console.log('[authService] POST /api/auth/google credential present:', !!credential);
   const res = await fetch(`${API_URL}/google`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -54,6 +55,7 @@ export async function googleLogin(credential) {
     credentials: 'include',
   });
   const data = await res.json();
+  console.log('[authService] Backend response:', data);
   if (!res.ok) throw new Error(data.message);
   return data;
 }
